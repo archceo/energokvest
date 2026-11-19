@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ЭнергоКвест «Разумный дом» — интерактивная развивающая игра о рациональном использовании энергоресурсов.">
+  <meta name="theme-color" content="#070d18">
+  <title>ЭнергоКвест «Разумный дом»</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="logo">
+        <span class="logo-bolt" aria-hidden="true">⚡</span>
+        <span class="logo-text">Энерго<em>Квест</em></span>
+      </div>
+
+      <nav class="steps" id="steps" aria-label="Этапы игры">
+        <span class="step" data-step="0"><b>1</b> Аудит</span>
+        <span class="step" data-step="1"><b>2</b> Баланс</span>
+        <span class="step" data-step="2"><b>3</b> Привычки</span>
+        <span class="step" data-step="3"><b>4</b> Викторина</span>
+      </nav>
+
+      <div class="top-actions">
+        <span class="score-chip" id="score-chip" title="Очки за пройденные уровни">0 / 400</span>
+        <button class="icon-btn" id="btn-sound" type="button" aria-label="Выключить звук" aria-pressed="true" title="Звук">🔊</button>
+      </div>
+    </header>
+
+    <main id="main">
+
+      <!-- ======================= СТАРТ ======================= -->
+      <section class="screen active" id="screen-start">
+        <div class="hero">
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <p class="eyebrow">Интерактивная игра · 10+</p>
+              <h1>Разумный<br><span class="grad">дом</span></h1>
+              <p class="hero-sub">Энергоквест о том, как тратить меньше ресурсов, не отказываясь от комфорта</p>
+              <p class="lead">Квитанция выросла на 40%, хотя в квартире ничего не сломалось — просто энергию тратят впустую. Ты становишься энергоменеджером семьи: найдёшь утечки, соберёшь бюджет месяца, разберёшься с привычками и докажешь, что экономия — это инженерия, а не запреты.</p>
+
+              <div class="name-row">
+                <label class="name-label" for="player-name">Как тебя зовут?</label>
+                <input class="name-input" id="player-name" type="text" maxlength="30" placeholder="Имя для сертификата" autocomplete="off" spellcheck="false">
+              </div>
+
+              <div class="hero-cta">
+                <button class="btn btn-primary btn-lg" id="btn-start" type="button">Начать миссию <span aria-hidden="true">→</span></button>
+                <span class="hero-note">4 уровня · 7–10 минут</span>
+              </div>
+              <p class="hero-best" id="hero-best" hidden></p>
+            </div>
+
+            <div class="hero-art" aria-hidden="true">
+              <div class="orb">
+                <div class="orb-ring"></div>
+                <div class="orb-ring ring2"></div>
+                <div class="orb-core">
+                  <span class="bolt-big">⚡</span>
+                  <span class="orb-caption">умная энергия</span>
+                </div>
+                <span class="orb-item i1">💡</span>
+                <span class="orb-item i2">🧊</span>
+                <span class="orb-item i3">🌡️</span>
+                <span class="orb-item i4">🧺</span>
+                <span class="orb-item i5">💻</span>
+                <span class="orb-item i6">🔌</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="level-cards">
+            <article class="level-card">
+              <span class="lc-num">01</span>
+              <span class="lc-icon" aria-hidden="true">🔍</span>
+              <h3>Энергоаудит</h3>
+              <p>12 точек в квартире. Найди 8 утечек энергии и не ошибись с остальными.</p>
+            </article>
+            <article class="level-card">
+              <span class="lc-num">02</span>
+              <span class="lc-icon" aria-hidden="true">⚖️</span>
+              <h3>Энергобаланс</h3>
+              <p>Собери месяц на 165 кВт·ч так, чтобы комфорт семьи не упал.</p>
+            </article>
+            <article class="level-card">
+              <span class="lc-num">03</span>
+              <span class="lc-icon" aria-hidden="true">🧠</span>
+              <h3>Привычки</h3>
+              <p>10 бытовых привычек: какие берегут энергию, а какие тратят её зря.</p>
+            </article>
+            <article class="level-card">
+              <span class="lc-num">04</span>
+              <span class="lc-icon" aria-hidden="true">🎓</span>
+              <h3>Викторина</h3>
+              <p>8 вопросов с цифрами и объяснениями — проверь, что запомнилось.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= УРОВЕНЬ 1 ======================= -->
+      <section class="screen" id="screen-audit">
+        <header class="level-head">
+          <p class="eyebrow">Уровень 1 · Энергоаудит</p>
+          <h2>Найди <span class="mark">8 утечек</span> энергии</h2>
+          <p>Перед тобой 12 точек в квартире. Восемь из них тратят энергию впустую, четыре — уже настроены правильно. Нажимай на карточки и читай, что происходит на самом деле.</p>
+        </header>
+
+        <div class="audit-layout">
+          <div class="room-grid" id="audit-grid" aria-label="Точки энергоаудита"></div>
+
+          <aside class="panel side-panel">
+            <div class="panel-top">
+              <span class="eyebrow">Прогресс</span>
+              <span class="counter"><b id="audit-found">0</b> / 8</span>
+            </div>
+            <div class="meter slim"><span id="audit-bar"></span></div>
+            <div class="hud-row"><span>Ошибок</span><b id="audit-mistakes">0</b></div>
+
+            <div class="fact" id="audit-fact" aria-live="polite">
+              <p class="fact-empty">Выбери карточку — здесь появится объяснение с цифрами.</p>
+            </div>
+
+            <button class="btn btn-primary wide" id="btn-audit-next" type="button" disabled>К энергобалансу →</button>
+            <p class="mini center">За каждую ошибку −10 очков</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ======================= УРОВЕНЬ 2 ======================= -->
+      <section class="screen" id="screen-budget">
+        <header class="level-head">
+          <p class="eyebrow">Уровень 2 · Энергобаланс</p>
+          <h2>Собери месяц на <span class="mark">165 кВт·ч</span></h2>
+          <p>Выбери по одному решению в каждой из шести зон. Нужно уложиться в лимит и сохранить комфорт семьи не ниже 88 из 100. Цифры условные: это киловатт-часы приведённой энергии, включая отопление.</p>
+        </header>
+
+        <div class="budget-sticky" id="budget-sticky" aria-hidden="true">
+          <div class="bs-item"><b id="sticky-kwh">0</b><span>кВт·ч</span></div>
+          <div class="bs-item"><b id="sticky-comfort">0</b><span>комфорт</span></div>
+          <div class="bs-status" id="sticky-status">выбрано 0 из 6</div>
+        </div>
+
+        <div class="budget-layout">
+          <div class="zone-grid" id="zone-grid"></div>
+
+          <aside class="panel side-panel sticky">
+            <div class="panel-top">
+              <span class="eyebrow">Бюджет месяца</span>
+              <span class="counter"><b id="budget-count">0</b> / 6</span>
+            </div>
+
+            <div class="big-number"><b id="budget-kwh">0</b><span>из 165 кВт·ч</span></div>
+            <div class="meter" id="budget-meter"><span id="budget-bar"></span></div>
+
+            <div class="hud-row"><span>Комфорт семьи</span><b><span id="comfort-val">0</span> / 100</b></div>
+            <div class="meter comfort" id="comfort-meter"><span id="comfort-bar"></span></div>
+            <p class="mini">Цель — не ниже <b>88</b></p>
+
+            <div class="hud-row"><span>Платёж за энергию</span><b id="budget-money">0 ₽</b></div>
+            <div class="hud-row"><span>Экономия к «как раньше»</span><b id="budget-saved">—</b></div>
+
+            <div class="feedback" id="budget-feedback" aria-live="polite"></div>
+
+            <button class="btn btn-primary wide" id="btn-budget-check" type="button" disabled>Проверить баланс</button>
+            <button class="btn btn-primary wide pulse" id="btn-budget-next" type="button" hidden>К привычкам →</button>
+            <p class="mini center">Тариф для расчёта: 6,2 ₽/кВт·ч</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ======================= УРОВЕНЬ 3 ======================= -->
+      <section class="screen" id="screen-sort">
+        <header class="level-head center-head">
+          <p class="eyebrow">Уровень 3 · Привычки</p>
+          <h2>Экономит или тратит впустую?</h2>
+          <p>Десять бытовых привычек. Выбери ответ — и узнай, сколько энергии стоит за каждым решением.</p>
+        </header>
+
+        <div class="sort-wrap">
+          <div class="sort-progress">
+            <span>Привычка <b id="sort-index">1</b> из 10</span>
+            <span class="counter" id="sort-score">0 верно</span>
+          </div>
+          <div class="meter slim"><span id="sort-bar"></span></div>
+
+          <div class="sort-card" id="sort-card">
+            <p class="sort-kicker">Это экономит энергию или тратит впустую?</p>
+            <h3 id="sort-text">Загрузка…</h3>
+            <div class="sort-buttons">
+              <button class="btn btn-good" type="button" data-choice="save">✅ Экономит</button>
+              <button class="btn btn-bad" type="button" data-choice="waste">🚫 Тратит впустую</button>
+            </div>
+            <div class="sort-feedback" id="sort-feedback" aria-live="polite"></div>
+          </div>
+
+          <div class="sort-result panel center-head" id="sort-result" hidden></div>
+        </div>
+      </section>
+
+      <!-- ======================= УРОВЕНЬ 4 ======================= -->
+      <section class="screen" id="screen-quiz">
+        <header class="level-head center-head">
+          <p class="eyebrow">Уровень 4 · Викторина</p>
+          <h2>Что ты знаешь об энергии?</h2>
+          <p>Восемь вопросов с объяснениями. Здесь важно не угадать, а понять, откуда берутся цифры.</p>
+        </header>
+
+        <div class="quiz-wrap">
+          <div class="quiz-top">
+            <span class="eyebrow">Вопрос <b id="quiz-index">1</b> из 8</span>
+            <span class="counter" id="quiz-score-live">0 верно</span>
+          </div>
+
+          <div class="quiz-card">
+            <h3 id="quiz-question">Загрузка…</h3>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div class="quiz-explain" id="quiz-explain" hidden></div>
+            <button class="btn btn-primary" id="btn-quiz-next" type="button" hidden>Следующий вопрос →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= ФИНАЛ ======================= -->
+      <section class="screen" id="screen-final">
+        <div class="final-hero">
+          <div class="medal" id="final-medal" aria-hidden="true">🏆</div>
+          <p class="eyebrow">Миссия завершена</p>
+          <h2 id="final-rank">Энергогений</h2>
+          <p class="final-sub" id="final-sub"></p>
+          <div class="final-score"><b id="final-total">0</b><span>из 400 очков</span></div>
+          <p class="final-best" id="final-best"></p>
+        </div>
+
+        <div class="breakdown" id="final-breakdown"></div>
+
+        <div class="final-columns">
+          <div class="panel">
+            <h3>Что забираешь с собой</h3>
+            <ul class="tips" id="final-tips"></ul>
+          </div>
+          <div class="panel">
+            <h3>Твой вклад в цифрах</h3>
+            <div id="final-impact"></div>
+          </div>
+        </div>
+
+        <div class="certificate" id="certificate">
+          <div class="cert-border">
+            <p class="cert-eyebrow">ЭнергоКвест «Разумный дом»</p>
+            <h2>Сертификат</h2>
+            <p class="cert-line">подтверждает, что</p>
+            <p class="cert-name" id="cert-name">Игрок</p>
+            <p class="cert-line">прошёл(ла) все четыре уровня и получил(а) звание</p>
+            <p class="cert-rank" id="cert-rank">Хранитель энергии</p>
+            <p class="cert-score">Результат: <b id="cert-score">0</b> из 100</p>
+            <div class="cert-footer">
+              <span id="cert-date"></span>
+              <span>⚡ Энергия — это ответственность</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="final-actions">
+          <button class="btn btn-primary" id="btn-print" type="button">🖨 Распечатать сертификат</button>
+          <button class="btn btn-ghost" id="btn-restart" type="button">Пройти заново</button>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <span>Учебная игра о рациональном использовании энергоресурсов</span>
+      <span>Цифры условные и служат для наглядности</span>
+    </footer>
+  </div>
+
+  <div class="fact-sheet" id="fact-sheet" role="dialog" aria-label="Объяснение">
+    <button class="fact-sheet-close" id="fact-sheet-close" type="button" aria-label="Закрыть объяснение">×</button>
+    <div id="fact-sheet-body"></div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
