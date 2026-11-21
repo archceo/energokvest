@@ -236,6 +236,42 @@ const QUIZ = [
     options: ["Около 1 кг", "Около 10 кг", "Около 40 кг", "Около 500 кг"],
     answer: 2,
     expl: "В среднем на 1 кВт·ч выработки приходится около 0,4 кг CO₂. 100 кВт·ч — это примерно 40 кг CO₂, как 250 км на бензиновом автомобиле."
+  },
+  {
+    q: "Зачем на смеситель ставят аэратор?",
+    options: ["Чтобы вода быстрее нагревалась", "Чтобы смешивать воду с воздухом и тратить её меньше", "Чтобы очищать воду от хлора", "Чтобы увеличить напор"],
+    answer: 1,
+    expl: "Аэратор добавляет в струю воздух: напор кажется привычным, а воды уходит до 50% меньше. Меньше горячей воды — меньше энергии на её нагрев."
+  },
+  {
+    q: "Какая маркировка означает самый экономичный бытовой прибор?",
+    options: ["Класс G", "Класс B", "Класс A+++", "Класс E"],
+    answer: 2,
+    expl: "На наклейке энергоэффективности шкала идёт от A+++ (самый экономичный) до G. Разница по расходу между крайними классами может быть в несколько раз."
+  },
+  {
+    q: "На сколько примерно вырастет расход на отопление, если поднять температуру в комнате на 1 °C?",
+    options: ["Меньше чем на 1%", "На 5–6%", "На 25%", "Расход не изменится"],
+    answer: 1,
+    expl: "Каждый лишний градус увеличивает расход тепла примерно на 5–6%. Поэтому 20 °C — и комфортно, и экономно."
+  },
+  {
+    q: "Какой источник энергии относится к возобновляемым?",
+    options: ["Природный газ", "Каменный уголь", "Солнечный свет", "Нефть"],
+    answer: 2,
+    expl: "Солнце, ветер и вода восстанавливаются постоянно. Газ, уголь и нефть — ископаемое топливо: их запасы ограничены, а при сжигании выделяется CO₂."
+  },
+  {
+    q: "Что произойдёт, если долго держать дверцу холодильника открытой?",
+    options: ["Ничего, холод сохранится", "Компрессор будет работать дольше и расход вырастет", "Холодильник начнёт экономить энергию", "Продукты станут холоднее"],
+    answer: 1,
+    expl: "Холод уходит в комнату, датчик включает компрессор, и тот работает без остановки. Поэтому дверцу лучше открывать ненадолго и заранее решать, что берёшь."
+  },
+  {
+    q: "При каком режиме стирки расход энергии на одну вещь будет наименьшим?",
+    options: ["Полная загрузка при 30–40 °C", "Полная загрузка при 90 °C", "Половина загрузки при 60 °C", "Расход не зависит от загрузки"],
+    answer: 0,
+    expl: "Энергия тратится в основном на нагрев воды и работу машины за цикл. Полная загрузка при 30–40 °C даёт максимум вещей за минимум энергии."
   }
 ];
 
@@ -261,6 +297,15 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+// Перемешивание Фишера—Йетса: возвращает тот же массив в случайном порядке.
+function shuffle(list) {
+  for (let i = list.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+  return list;
+}
 
 const fmt = (value) => new Intl.NumberFormat("ru-RU").format(Math.round(value));
 
@@ -335,6 +380,12 @@ let budgetState = { choices: {}, attempts: 0, solved: false, total: null };
 let sortState = { index: 0, correct: 0, locked: false };
 let quizState = { index: 0, correct: 0, locked: false };
 
+// Перемешанные наборы на текущий забег: порядок и варианты меняются каждый раз.
+let auditRun = AUDIT_ITEMS.slice();
+let zonesRun = ZONES;
+let sortRun = SORT_ITEMS.slice();
+let quizRun = QUIZ.slice();
+
 /* ---------------- тост ---------------- */
 
 let toastTimer = null;
@@ -397,9 +448,10 @@ function resetRun() {
 
 function initAudit() {
   auditState = { found: new Set(), mistakes: 0, completed: false };
+  auditRun = shuffle(AUDIT_ITEMS.slice());
 
   const grid = $("#audit-grid");
-  grid.innerHTML = AUDIT_ITEMS.map((item) => `
+  grid.innerHTML = auditRun.map((item) => `
     <button class="spot" type="button" data-id="${item.id}" aria-pressed="false">
       <span class="spot-icon" aria-hidden="true">${item.icon}</span>
       <span class="spot-room">${item.room}</span>
@@ -497,10 +549,14 @@ function updateAuditHud() {
 
 function initBudget() {
   budgetState = { choices: {}, attempts: 0, solved: false, total: null };
+  zonesRun = ZONES.map((zone) => ({
+    ...zone,
+    options: shuffle(zone.options.slice())
+  }));
 
   const grid = $("#zone-grid");
   grid.classList.remove("locked");
-  grid.innerHTML = ZONES.map((zone) => `
+  grid.innerHTML = zonesRun.map((zone) => `
     <section class="zone" aria-label="${zone.name}">
       <div class="zone-head">
         <span class="zone-icon" aria-hidden="true">${zone.icon}</span>
@@ -535,7 +591,7 @@ function initBudget() {
 }
 
 function selectedOptions() {
-  return ZONES.map((zone) => {
+  return zonesRun.map((zone) => {
     const idx = budgetState.choices[zone.id];
     return idx === undefined ? null : zone.options[idx];
   });
@@ -547,7 +603,7 @@ function totalKwh() {
 
 function comfortAvg() {
   const total = selectedOptions().reduce((sum, opt) => sum + (opt ? opt.comfort : 0), 0);
-  return total / ZONES.length;
+  return total / zonesRun.length;
 }
 
 function onBudgetPick(event) {
@@ -585,7 +641,7 @@ function updateBudgetSummary() {
 
   $("#comfort-val").textContent = fmt1(comfort);
   $("#comfort-bar").style.width = clamp(comfort, 0, 100) + "%";
-  $("#comfort-meter").classList.toggle("warn", count === ZONES.length && comfort < COMFORT_TARGET);
+  $("#comfort-meter").classList.toggle("warn", count === zonesRun.length && comfort < COMFORT_TARGET);
 
   $("#budget-money").textContent = fmt(total * TARIFF) + " ₽";
 
@@ -594,13 +650,13 @@ function updateBudgetSummary() {
     ? (saved > 0 ? "−" + fmt(saved) + " кВт·ч" : "0 кВт·ч")
     : "—";
 
-  $("#btn-budget-check").disabled = count !== ZONES.length || budgetState.solved;
+  $("#btn-budget-check").disabled = count !== zonesRun.length || budgetState.solved;
 
   $("#sticky-kwh").textContent = total;
   $("#sticky-comfort").textContent = fmt1(comfort);
 
   const status = $("#sticky-status");
-  if (count < ZONES.length) {
+  if (count < zonesRun.length) {
     status.textContent = "выбрано " + count + " из 6";
     status.className = "bs-status";
   } else if (total > BUDGET_LIMIT) {
@@ -630,7 +686,7 @@ function checkBudget() {
     let current = null;
     let gap = 0;
 
-    ZONES.forEach((entry) => {
+    zonesRun.forEach((entry) => {
       const selected = entry.options[budgetState.choices[entry.id]];
       const cheapest = Math.min(...entry.options.map((opt) => opt.kwh));
       if (selected.kwh - cheapest > gap) {
@@ -652,7 +708,7 @@ function checkBudget() {
     let best = null;
     let gap = 0;
 
-    ZONES.forEach((entry) => {
+    zonesRun.forEach((entry) => {
       const selected = entry.options[budgetState.choices[entry.id]];
       const bestOption = entry.options.reduce((a, b) => (b.comfort > a.comfort ? b : a));
       if (bestOption.comfort - selected.comfort > gap) {
@@ -698,22 +754,24 @@ function checkBudget() {
 
 function initSort() {
   sortState = { index: 0, correct: 0, locked: false };
+  sortRun = shuffle(SORT_ITEMS.slice());
 
   $("#sort-card").hidden = false;
   $("#sort-result").hidden = true;
   $("#sort-result").innerHTML = "";
   $("#sort-score").textContent = "0 верно";
+  $("#sort-total").textContent = sortRun.length;
 
   renderSort();
 }
 
 function renderSort() {
-  const item = SORT_ITEMS[sortState.index];
+  const item = sortRun[sortState.index];
 
   $("#sort-index").textContent = sortState.index + 1;
   $("#sort-text").textContent = item.text;
   $("#sort-score").textContent = sortState.correct + " верно";
-  $("#sort-bar").style.width = (sortState.index / SORT_ITEMS.length) * 100 + "%";
+  $("#sort-bar").style.width = (sortState.index / sortRun.length) * 100 + "%";
 
   const feedback = $("#sort-feedback");
   feedback.textContent = "";
@@ -725,7 +783,7 @@ function renderSort() {
 function answerSort(choice) {
   if (sortState.locked) return;
 
-  const item = SORT_ITEMS[sortState.index];
+  const item = sortRun[sortState.index];
   const ok = choice === item.correct;
   const feedback = $("#sort-feedback");
 
@@ -737,7 +795,7 @@ function answerSort(choice) {
 
   $$("#sort-card [data-choice]").forEach((btn) => { btn.disabled = true; });
   $("#sort-score").textContent = sortState.correct + " верно";
-  $("#sort-bar").style.width = ((sortState.index + 1) / SORT_ITEMS.length) * 100 + "%";
+  $("#sort-bar").style.width = ((sortState.index + 1) / sortRun.length) * 100 + "%";
 
   sfx(ok ? "good" : "bad");
 
@@ -745,7 +803,7 @@ function answerSort(choice) {
     sortState.locked = false;
     sortState.index += 1;
 
-    if (sortState.index >= SORT_ITEMS.length) {
+    if (sortState.index >= sortRun.length) {
       endSort();
     } else {
       renderSort();
@@ -754,7 +812,8 @@ function answerSort(choice) {
 }
 
 function endSort() {
-  state.scores.sort = sortState.correct * 10;
+  const strong = sortState.correct >= Math.ceil(sortRun.length * 0.8);
+  state.scores.sort = Math.round((sortState.correct / sortRun.length) * 100);
   updateScoreChip();
 
   $("#sort-card").hidden = true;
@@ -762,8 +821,8 @@ function endSort() {
   const result = $("#sort-result");
   result.hidden = false;
   result.innerHTML = `
-    <div class="big-icon" aria-hidden="true">${sortState.correct >= 8 ? "🧠" : "📘"}</div>
-    <h3>${sortState.correct} из ${SORT_ITEMS.length} привычек — верно</h3>
+    <div class="big-icon" aria-hidden="true">${strong ? "🧠" : "📘"}</div>
+    <h3>${sortState.correct} из ${sortRun.length} привычек — верно</h3>
     <p class="mini">За уровень начислено ${state.scores.sort} из 100 очков.</p>
     <button class="btn btn-primary" id="btn-sort-next" type="button">К викторине →</button>
   `;
@@ -774,18 +833,36 @@ function endSort() {
     sfx("click");
   });
 
-  sfx(sortState.correct >= 8 ? "win" : "click");
+  sfx(strong ? "win" : "click");
 }
 
 /* ---------------- уровень 4: викторина ---------------- */
 
+// Каждый запуск: случайный порядок вопросов и случайный порядок вариантов.
+function buildQuizRun() {
+  return shuffle(QUIZ.slice()).map((item) => {
+    const options = shuffle(item.options.map((text, i) => ({
+      text,
+      correct: i === item.answer
+    })));
+
+    return {
+      ...item,
+      options: options.map((option) => option.text),
+      answer: options.findIndex((option) => option.correct)
+    };
+  });
+}
+
 function initQuiz() {
   quizState = { index: 0, correct: 0, locked: false };
+  quizRun = buildQuizRun();
+  $("#quiz-total").textContent = quizRun.length;
   renderQuiz();
 }
 
 function renderQuiz() {
-  const item = QUIZ[quizState.index];
+  const item = quizRun[quizState.index];
 
   $("#quiz-index").textContent = quizState.index + 1;
   $("#quiz-score-live").textContent = quizState.correct + " верно";
@@ -818,7 +895,7 @@ function onQuizPick(event) {
 }
 
 function answerQuiz(chosen) {
-  const item = QUIZ[quizState.index];
+  const item = quizRun[quizState.index];
   const ok = chosen === item.answer;
 
   quizState.locked = true;
@@ -839,7 +916,7 @@ function answerQuiz(chosen) {
 
   const next = $("#btn-quiz-next");
   next.hidden = false;
-  next.textContent = quizState.index === QUIZ.length - 1 ? "К результатам →" : "Следующий вопрос →";
+  next.textContent = quizState.index === quizRun.length - 1 ? "К результатам →" : "Следующий вопрос →";
 
   sfx(ok ? "good" : "bad");
 }
@@ -851,7 +928,7 @@ function onQuizNext() {
   next.disabled = true;
   quizState.index += 1;
 
-  if (quizState.index >= QUIZ.length) {
+  if (quizState.index >= quizRun.length) {
     endQuiz();
   } else {
     renderQuiz();
@@ -859,7 +936,7 @@ function onQuizNext() {
 }
 
 function endQuiz() {
-  state.scores.quiz = Math.round((quizState.correct / QUIZ.length) * 100);
+  state.scores.quiz = Math.round((quizState.correct / quizRun.length) * 100);
   updateScoreChip();
   finishGame();
 }
